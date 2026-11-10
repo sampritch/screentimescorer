@@ -4,6 +4,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthScreen } from '../screens/AuthScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
+import { LinkDeviceScreen } from '../screens/LinkDeviceScreen';
 import { MainTabs } from './MainTabs';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
@@ -55,6 +56,11 @@ export function RootNavigator() {
               name="Paywall"
               component={PaywallScreen}
               options={{ title: 'Upgrade', presentation: 'modal' }}
+            />
+            <Stack.Screen
+              name="LinkDevice"
+              component={LinkDeviceScreen}
+              options={{ title: 'Link device' }}
             />
           </>
         ) : (

@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Placeholder entitlements for Expo prebuild / Xcode.
+  Reference entitlements for Expo prebuild / Xcode.
   FamilyControls distribution entitlement: APPROVED.
   After `npx expo prebuild`, confirm the generated ios/*.entitlements
-  includes com.apple.developer.family-controls = true and that the
-  App ID capability is enabled in the Apple Developer portal.
+  includes family-controls + the App Group below.
 -->
 <plist version="1.0">
 <dict>
   <key>com.apple.developer.family-controls</key>
   <true/>
+  <key>com.apple.security.application-groups</key>
+  <array>
+    <string>group.com.sampritchard.screentimescorer</string>
+  </array>
 </dict>
 </plist>

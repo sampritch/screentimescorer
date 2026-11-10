@@ -17,7 +17,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sampritchard.screentimescorer",
       "entitlements": {
-        "com.apple.developer.family-controls": true
+        "com.apple.developer.family-controls": true,
+        "com.apple.security.application-groups": [
+          "group.com.sampritchard.screentimescorer"
+        ]
       },
       "infoPlist": {
         "NSFamilyControlsUsageDescription": "Screen Time Scorer uses Screen Time data to calculate your Phone Health Score and suggest healthier habits on this device."

@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors } from '../theme/colors';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -10,15 +10,69 @@ import {
   computeHealthScore,
   freeTip,
   scoreLabel,
+  type DailyMetrics,
 } from '../lib/score';
+import { getTodayUsage, isAuthorized } from '../lib/deviceUsage';
+import { loadDeviceLink } from '../lib/deviceLinkStorage';
 import type { RootStackParamList } from '../navigation/types';
 
 export function HomeScreen() {
   const { isPaid, planLabel } = useSubscription();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [metrics, setMetrics] = useState<DailyMetrics>(DEMO_TODAY_METRICS);
+  const [usingLive, setUsingLive] = useState(false);
+  const [deviceLinked, setDeviceLinked] = useState(false);
 
-  const score = useMemo(() => computeHealthScore(DEMO_TODAY_METRICS), []);
+  const refreshUsage = useCallback(async () => {
+    const link = await loadDeviceLink();
+    let authorized = false;
+    try {
+      authorized = await isAuthorized();
+    } catch {
+      authorized = false;
+    }
+    const linked = link.linked || authorized;
+    setDeviceLinked(linked);
+
+    if (!authorized) {
+      setUsingLive(false);
+      setMetrics(DEMO_TODAY_METRICS);
+      return;
+    }
+
+    try {
+      const usage = await getTodayUsage();
+      if (usage.source === 'device' || usage.screenTimeMinutes > 0) {
+        setMetrics({
+          screenTimeMinutes: usage.screenTimeMinutes,
+          pickups: usage.pickups ?? 0,
+          nightShare: DEMO_TODAY_METRICS.nightShare,
+          fragmentation: DEMO_TODAY_METRICS.fragmentation,
+        });
+        setUsingLive(true);
+      } else {
+        // Authorized but monitor has not written aggregates yet — keep demo with note.
+        setUsingLive(false);
+        setMetrics(DEMO_TODAY_METRICS);
+      }
+    } catch {
+      setUsingLive(false);
+      setMetrics(DEMO_TODAY_METRICS);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshUsage();
+    }, [refreshUsage])
+  );
+
+  useEffect(() => {
+    void refreshUsage();
+  }, [refreshUsage]);
+
+  const score = useMemo(() => computeHealthScore(metrics), [metrics]);
   const tip = useMemo(() => freeTip(), []);
   const label = scoreLabel(score);
   const scoreColor =
@@ -38,13 +92,25 @@ export function HomeScreen() {
       <View style={styles.metrics}>
         <Metric
           label="Screen time"
-          value={`${DEMO_TODAY_METRICS.screenTimeMinutes} min`}
+          value={`${metrics.screenTimeMinutes} min`}
         />
-        <Metric label="Pickups" value={`${DEMO_TODAY_METRICS.pickups}`} />
+        <Metric label="Pickups" value={`${metrics.pickups}`} />
       </View>
       <Text style={styles.demoNote}>
-        Demo metrics until UsageStats / FamilyControls bridges ship.
+        {usingLive
+          ? 'Live device aggregates (FamilyControls / DeviceActivity).'
+          : deviceLinked
+            ? 'Device linked — waiting on DeviceActivity monitor aggregates. Showing demo metrics for now.'
+            : 'Demo metrics until you link this device (Account → Link this device).'}
       </Text>
+
+      {!deviceLinked ? (
+        <PrimaryButton
+          label="Link this device"
+          onPress={() => navigation.navigate('LinkDevice')}
+          style={{ marginBottom: 16 }}
+        />
+      ) : null}
 
       <View style={styles.tipCard}>
         <Text style={styles.tipEyebrow}>Today’s tip</Text>

@@ -8,7 +8,7 @@ Cross-platform **React Native + Expo (TypeScript)** app that scores screen time 
 | Bundle / Android package | `com.sampritchard.screentimescorer` |
 | Target GitHub remote | https://github.com/sampritch/screentimescorer.git |
 | Auth | Supabase email/password (sign up / in / out / delete account) |
-| FamilyControls | **APPROVED** — entitlement placeholders included |
+| FamilyControls | **APPROVED** — local Expo module + Link device flow |
 | Free tier | Today’s Phone Health Score + **one tip** |
 | Paid (stub) | Trends, history, multiple tips, expert-team advice · **$1 / 7-day paid trial** |
 
@@ -81,25 +81,33 @@ Client code reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 | Screen | Notes |
 |---|---|
 | **Auth** | Sign up / log in (email + password) |
-| **Home** | Today’s score hero + one tip (demo metrics) |
+| **Home** | Today’s score hero + one tip (live metrics when linked) |
 | **History** | Paid gate stub → demo week when stub trial active |
 | **Tips** | Free: one tip; paid: multiple + expert-team stub |
-| **Account** | Log out + delete account |
+| **Account** | Link device, log out, delete account |
+| **Link device** | iOS FamilyControls auth · Android UsageStats stub |
 | **Paywall** | Stub for $1 / 7-day paid trial (local entitlement flip) |
 
 Tab bar: Home · History · Tips · Account.
 
 ---
 
-## FamilyControls (iOS)
+## FamilyControls (iOS) — device usage
 
-Entitlement is **approved**. Placeholders:
+Entitlement is **approved**. This repo includes:
 
-- `app.json` iOS entitlements + usage description
-- `plugins/withFamilyControls.js`
-- `ios-placeholders/ScreenTimeScorer.entitlements`
+- Local Expo module `modules/device-usage` → `requestPermission()` / `isAuthorized()` / `getTodayUsage()`
+- Config plugin + App Group `group.com.sampritchard.screentimescorer`
+- DeviceActivityMonitor extension **scaffold** (add target in Xcode)
+- In-app **Link this device** screen (`Platform.OS`: Apple real / Android stub)
+- Docs: [`docs/FAMILYCONTROLS.md`](./docs/FAMILYCONTROLS.md) · apply zip: [`docs/APPLY-APPLE-SCREENTIME-PATCH.md`](./docs/APPLY-APPLE-SCREENTIME-PATCH.md)
 
-Full notes: [`docs/FAMILYCONTROLS.md`](./docs/FAMILYCONTROLS.md).
+**Real device required** (Simulator cannot authorize). Use a development build, not Expo Go:
+
+```bash
+npx expo prebuild --platform ios
+npx expo run:ios --device
+```
 
 ---
 
@@ -159,14 +167,16 @@ App.tsx
 src/
   components/     PrimaryButton, PaidGate
   context/        Auth + subscription stubs
-  lib/            supabase, score, subscription
+  lib/            supabase, score, subscription, deviceUsage
   navigation/     stack + tabs
-  screens/        Auth, Home, History, Tips, Account, Paywall
+  screens/        Auth, Home, History, Tips, Account, LinkDevice, Paywall
   theme/
+modules/device-usage/   FamilyControls + Android stub Expo module
 plugins/withFamilyControls.js
 ios-placeholders/
 supabase/
 docs/FAMILYCONTROLS.md
+docs/APPLY-APPLE-SCREENTIME-PATCH.md
 .env.example
 ```
 

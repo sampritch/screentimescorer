@@ -53,10 +53,15 @@ export function AccountScreen() {
       </Text>
 
       <PrimaryButton
+        label="Link this device"
+        onPress={() => navigation.navigate('LinkDevice')}
+        style={{ marginTop: 24 }}
+      />
+      <PrimaryButton
         label="Manage subscription / paywall"
         variant="secondary"
         onPress={() => navigation.navigate('Paywall')}
-        style={{ marginTop: 24 }}
+        style={{ marginTop: 12 }}
       />
       <PrimaryButton
         label="Log out"

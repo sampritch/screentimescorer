@@ -1,0 +1,25 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'maven-publish'
+
+group = 'expo.modules.deviceusage'
+version = '1.0.0'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+if (expoModulesCorePlugin.exists()) {
+  apply from: expoModulesCorePlugin
+  applyKotlinExpoModulesCorePlugin()
+  useDefaultAndroidSdkVersions()
+  useExpoPublishing()
+}
+
+android {
+  namespace "expo.modules.deviceusage"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "device-usage",
+  "version": "1.0.0",
+  "description": "FamilyControls / DeviceActivity (iOS) + UsageStats stub (Android) for Screen Time Scorer",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {},
+  "keywords": ["expo", "familycontrols", "deviceactivity", "screentime"],
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}
