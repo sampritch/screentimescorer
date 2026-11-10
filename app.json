@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.sampritchard.screentimescorer",
+      "usesAppleSignIn": true,
       "entitlements": {
         "com.apple.developer.family-controls": true,
         "com.apple.security.application-groups": [
@@ -23,7 +24,8 @@
         ]
       },
       "infoPlist": {
-        "NSFamilyControlsUsageDescription": "Screen Time Scorer uses Screen Time data to calculate your Phone Health Score and suggest healthier habits on this device."
+        "NSFamilyControlsUsageDescription": "Screen Time Scorer uses Screen Time data to calculate your Phone Health Score and suggest healthier habits on this device.",
+        "NSFaceIDUsageDescription": "Screen Time Scorer uses Face ID to unlock the app after you sign in."
       }
     },
     "android": {
@@ -36,7 +38,9 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.PACKAGE_USAGE_STATS"
+        "android.permission.PACKAGE_USAGE_STATS",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "web": {
@@ -45,7 +49,15 @@
     "plugins": [
       "expo-secure-store",
       "expo-dev-client",
-      "./plugins/withFamilyControls.js"
+      "./plugins/withFamilyControls.js",
+      "expo-web-browser",
+      "expo-apple-authentication",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Screen Time Scorer uses Face ID to unlock the app after you sign in."
+        }
+      ]
     ],
     "extra": {
       "eas": {

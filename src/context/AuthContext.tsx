@@ -8,14 +8,23 @@ import React, {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import {
+  isAppleAuthAvailable,
+  signInWithAppleNative,
+  signInWithGoogleOAuth,
+} from '../lib/oauth';
+import { setBiometricEnabled } from '../lib/secureStorage';
 
 type AuthContextValue = {
   session: Session | null;
   user: User | null;
   loading: boolean;
   configured: boolean;
+  appleAvailable: boolean;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithApple: () => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
   deleteAccount: () => Promise<{ error: string | null }>;
 };
@@ -25,6 +34,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -37,6 +47,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
+    });
+
+    isAppleAuthAvailable().then((ok) => {
+      if (mounted) setAppleAvailable(ok);
     });
 
     return () => {
@@ -67,7 +81,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   }, []);
 
+  const signInWithApple = useCallback(async () => {
+    return signInWithAppleNative();
+  }, []);
+
+  const signInWithGoogle = useCallback(async () => {
+    return signInWithGoogleOAuth();
+  }, []);
+
   const signOut = useCallback(async () => {
+    // Clear biometric preference so the next account isn't gated unexpectedly.
+    await setBiometricEnabled(false);
     const { error } = await supabase.auth.signOut();
     return { error: error?.message ?? null };
   }, []);
@@ -77,13 +101,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: 'Supabase is not configured.' };
     }
 
-    // Preferred path: Edge Function that deletes auth user + cascading profile/history.
     const { error: fnError } = await supabase.functions.invoke('delete-account', {
       method: 'POST',
     });
 
+    await setBiometricEnabled(false);
+
     if (fnError) {
-      // Scaffold fallback: sign out locally and surface setup guidance.
       await supabase.auth.signOut();
       return {
         error:
@@ -101,12 +125,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user: session?.user ?? null,
       loading,
       configured: isSupabaseConfigured,
+      appleAvailable,
       signUp,
       signIn,
+      signInWithApple,
+      signInWithGoogle,
       signOut,
       deleteAccount,
     }),
-    [session, loading, signUp, signIn, signOut, deleteAccount]
+    [
+      session,
+      loading,
+      appleAvailable,
+      signUp,
+      signIn,
+      signInWithApple,
+      signInWithGoogle,
+      signOut,
+      deleteAccount,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

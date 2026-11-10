@@ -3,10 +3,12 @@ import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthScreen } from '../screens/AuthScreen';
+import { BiometricLockScreen } from '../screens/BiometricLockScreen';
 import { PaywallScreen } from '../screens/PaywallScreen';
 import { LinkDeviceScreen } from '../screens/LinkDeviceScreen';
 import { MainTabs } from './MainTabs';
 import { useAuth } from '../context/AuthContext';
+import { useBiometric } from '../context/BiometricContext';
 import { colors } from '../theme/colors';
 import type { RootStackParamList } from './types';
 
@@ -26,8 +28,9 @@ const navTheme = {
 
 export function RootNavigator() {
   const { session, loading } = useAuth();
+  const { locked, ready: biometricReady } = useBiometric();
 
-  if (loading) {
+  if (loading || (session && !biometricReady)) {
     return (
       <View
         style={{
@@ -40,6 +43,10 @@ export function RootNavigator() {
         <ActivityIndicator color={colors.accent} />
       </View>
     );
+  }
+
+  if (session && locked) {
+    return <BiometricLockScreen />;
   }
 
   return (

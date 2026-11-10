@@ -7,17 +7,26 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { colors } from '../theme/colors';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../context/AuthContext';
 
 export function AuthScreen() {
-  const { signIn, signUp, configured } = useAuth();
+  const {
+    signIn,
+    signUp,
+    signInWithApple,
+    signInWithGoogle,
+    configured,
+    appleAvailable,
+  } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [socialBusy, setSocialBusy] = useState<'apple' | 'google' | null>(null);
 
   const onSubmit = async () => {
     setError(null);
@@ -25,6 +34,22 @@ export function AuthScreen() {
     const action = mode === 'signin' ? signIn : signUp;
     const result = await action(email.trim(), password);
     setLoading(false);
+    if (result.error) setError(result.error);
+  };
+
+  const onGoogle = async () => {
+    setError(null);
+    setSocialBusy('google');
+    const result = await signInWithGoogle();
+    setSocialBusy(null);
+    if (result.error) setError(result.error);
+  };
+
+  const onApple = async () => {
+    setError(null);
+    setSocialBusy('apple');
+    const result = await signInWithApple();
+    setSocialBusy(null);
     if (result.error) setError(result.error);
   };
 
@@ -45,6 +70,32 @@ export function AuthScreen() {
           Supabase env vars missing. Copy `.env.example` → `.env` before signing up.
         </Text>
       ) : null}
+
+      <View style={styles.social}>
+        {appleAvailable ? (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+            cornerRadius={12}
+            style={styles.appleBtn}
+            onPress={onApple}
+          />
+        ) : null}
+        <PrimaryButton
+          label="Continue with Google"
+          variant="secondary"
+          onPress={onGoogle}
+          loading={socialBusy === 'google'}
+          disabled={socialBusy === 'apple' || loading}
+          style={{ marginTop: appleAvailable ? 10 : 0 }}
+        />
+      </View>
+
+      <View style={styles.dividerRow}>
+        <View style={styles.divider} />
+        <Text style={styles.dividerText}>or email</Text>
+        <View style={styles.divider} />
+      </View>
 
       <View style={styles.form}>
         <Text style={styles.label}>Email</Text>
@@ -72,6 +123,7 @@ export function AuthScreen() {
           label={mode === 'signin' ? 'Log in' : 'Sign up'}
           onPress={onSubmit}
           loading={loading}
+          disabled={socialBusy !== null}
           style={{ marginTop: 12 }}
         />
         <PrimaryButton
@@ -100,7 +152,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hero: {
-    marginBottom: 28,
+    marginBottom: 24,
   },
   brand: {
     color: colors.accent,
@@ -118,6 +170,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 13,
     lineHeight: 18,
+  },
+  social: {
+    marginBottom: 8,
+  },
+  appleBtn: {
+    width: '100%',
+    height: 48,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginVertical: 16,
+  },
+  divider: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    color: colors.textMuted,
+    fontSize: 13,
   },
   form: {
     gap: 6,

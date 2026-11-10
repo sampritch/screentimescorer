@@ -4,8 +4,10 @@
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Auth → Providers → Email: enable email/password.
-3. Project Settings → API: copy **Project URL** and **anon public** key.
-4. Put them in a local `.env` (never commit):
+3. Auth → Providers → **Google** + **Apple**: enable and configure (see [`docs/SOCIAL-AUTH-FACEID.md`](../docs/SOCIAL-AUTH-FACEID.md)).
+4. Auth → URL Configuration → Redirect URLs: add `screentimescorer://auth/callback`.
+5. Project Settings → API: copy **Project URL** and **anon public** key.
+6. Put them in a local `.env` (never commit):
 
 ```bash
 cp .env.example .env

@@ -7,7 +7,7 @@ Cross-platform **React Native + Expo (TypeScript)** app that scores screen time 
 | Owner | Samuel Pritchard |
 | Bundle / Android package | `com.sampritchard.screentimescorer` |
 | Target GitHub remote | https://github.com/sampritch/screentimescorer.git |
-| Auth | Supabase email/password (sign up / in / out / delete account) |
+| Auth | Supabase email/password + Apple (iOS) + Google OAuth; optional Face ID / biometrics unlock |
 | FamilyControls | **APPROVED** — local Expo module + Link device flow |
 | Free tier | Today’s Phone Health Score + **one tip** |
 | Paid (stub) | Trends, history, multiple tips, expert-team advice · **$1 / 7-day paid trial** |
@@ -62,17 +62,32 @@ npx expo run:ios
 
 1. Create a Supabase project.
 2. Enable **Email** auth (Auth → Providers).
-3. Copy **Project URL** + **anon public** key into `.env`:
+3. Enable **Google** + **Apple** providers and add redirect URL `screentimescorer://auth/callback` — full console steps: [`docs/SOCIAL-AUTH-FACEID.md`](./docs/SOCIAL-AUTH-FACEID.md).
+4. Copy **Project URL** + **anon public** key into `.env`:
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-4. Optional SQL + delete-account Edge Function: see [`supabase/README.md`](./supabase/README.md).
-5. Ship **`.env.example` only** — never commit real `.env` secrets.
+5. Optional SQL + delete-account Edge Function: see [`supabase/README.md`](./supabase/README.md).
+6. Ship **`.env.example` only** — never commit real `.env` secrets.
 
-Client code reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` via `src/lib/supabase.ts`.
+Client code reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` via `src/lib/supabase.ts`. Sessions persist in **SecureStore** on device.
+
+---
+
+## Social auth + Face ID
+
+| | |
+|---|---|
+| Apple | Native iOS via `expo-apple-authentication` → `signInWithIdToken` |
+| Google | Supabase OAuth + `expo-auth-session` / `expo-web-browser` (iOS + Android) |
+| Biometrics | Optional unlock gate (`expo-local-authentication`); toggle in Account |
+| Apply zip | [`docs/APPLY-SOCIAL-AUTH-FACEID-PATCH.md`](./docs/APPLY-SOCIAL-AUTH-FACEID-PATCH.md) |
+| Checklist | [`docs/SOCIAL-AUTH-FACEID.md`](./docs/SOCIAL-AUTH-FACEID.md) |
+
+Needs a **development build** (not Expo Go) for Apple Sign-In and Face ID.
 
 ---
 
@@ -80,11 +95,12 @@ Client code reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 
 | Screen | Notes |
 |---|---|
-| **Auth** | Sign up / log in (email + password) |
+| **Auth** | Apple (iOS) · Google · email sign up / log in |
 | **Home** | Today’s score hero + one tip (live metrics when linked) |
 | **History** | Paid gate stub → demo week when stub trial active |
 | **Tips** | Free: one tip; paid: multiple + expert-team stub |
-| **Account** | Link device, log out, delete account |
+| **Account** | Biometric unlock toggle, link device, log out, delete account |
+| **Biometric lock** | Shown when Face ID / biometrics unlock is enabled |
 | **Link device** | iOS FamilyControls auth · Android UsageStats stub |
 | **Paywall** | Stub for $1 / 7-day paid trial (local entitlement flip) |
 
@@ -166,10 +182,10 @@ Create the empty repo `sampritch/screentimescorer` on GitHub first (no README/li
 App.tsx
 src/
   components/     PrimaryButton, PaidGate
-  context/        Auth + subscription stubs
-  lib/            supabase, score, subscription, deviceUsage
+  context/        Auth, Biometric, subscription stubs
+  lib/            supabase, oauth, secureStorage, score, subscription, deviceUsage
   navigation/     stack + tabs
-  screens/        Auth, Home, History, Tips, Account, LinkDevice, Paywall
+  screens/        Auth, BiometricLock, Home, History, Tips, Account, LinkDevice, Paywall
   theme/
 modules/device-usage/   FamilyControls + Android stub Expo module
 plugins/withFamilyControls.js
@@ -177,6 +193,8 @@ ios-placeholders/
 supabase/
 docs/FAMILYCONTROLS.md
 docs/APPLY-APPLE-SCREENTIME-PATCH.md
+docs/SOCIAL-AUTH-FACEID.md
+docs/APPLY-SOCIAL-AUTH-FACEID-PATCH.md
 .env.example
 ```
 
