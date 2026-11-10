@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Screen Time Scorer",
+    "slug": "screentimescorer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "screentimescorer",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B1F17"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sampritchard.screentimescorer",
+      "entitlements": {
+        "com.apple.developer.family-controls": true
+      },
+      "infoPlist": {
+        "NSFamilyControlsUsageDescription": "Screen Time Scorer uses Screen Time data to calculate your Phone Health Score and suggest healthier habits on this device."
+      }
+    },
+    "android": {
+      "package": "com.sampritchard.screentimescorer",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1F17",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.PACKAGE_USAGE_STATS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-dev-client",
+      "./plugins/withFamilyControls.js"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "replace-after-eas-init"
+      }
+    }
+  }
+}

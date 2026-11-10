@@ -1,0 +1,177 @@
+# Screen Time Scorer
+
+Cross-platform **React Native + Expo (TypeScript)** app that scores screen time and phone pickups, then tips users toward healthier habits.
+
+| | |
+|---|---|
+| Owner | Samuel Pritchard |
+| Bundle / Android package | `com.sampritchard.screentimescorer` |
+| Target GitHub remote | https://github.com/sampritch/screentimescorer.git |
+| Auth | Supabase email/password (sign up / in / out / delete account) |
+| FamilyControls | **APPROVED** — entitlement placeholders included |
+| Free tier | Today’s Phone Health Score + **one tip** |
+| Paid (stub) | Trends, history, multiple tips, expert-team advice · **$1 / 7-day paid trial** |
+
+This repo was scaffolded locally. **Do not expect a cloud push from Cursor** — push from your own machine/CLI (commands below).
+
+---
+
+## Prerequisites
+
+- Node 20+ (Node 22 OK)
+- npm
+- Expo Go for JS-only smoke tests, **or** a dev client / prebuild for native modules
+- A Supabase project (URL + anon key)
+- macOS + Xcode for iOS device builds; Android Studio / SDK for Android
+
+---
+
+## Run locally
+
+```bash
+cd screentimescorer   # or wherever you cloned / unzipped
+cp .env.example .env
+# Edit .env with your Supabase Project URL and anon key
+
+npm install
+npx expo start
+```
+
+Useful scripts:
+
+```bash
+npm run android   # Expo start targeting Android
+npm run ios       # Expo start targeting iOS (macOS)
+npm run web       # Web smoke (limited)
+```
+
+### Dev client / prebuild (native-ready)
+
+```bash
+npx expo prebuild
+npx expo run:android
+# macOS:
+npx expo run:ios
+```
+
+`expo-dev-client` is installed so custom native modules (UsageStats / FamilyControls) can land later without leaving Expo.
+
+---
+
+## Supabase setup
+
+1. Create a Supabase project.
+2. Enable **Email** auth (Auth → Providers).
+3. Copy **Project URL** + **anon public** key into `.env`:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+4. Optional SQL + delete-account Edge Function: see [`supabase/README.md`](./supabase/README.md).
+5. Ship **`.env.example` only** — never commit real `.env` secrets.
+
+Client code reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` via `src/lib/supabase.ts`.
+
+---
+
+## Screens (MVP shell)
+
+| Screen | Notes |
+|---|---|
+| **Auth** | Sign up / log in (email + password) |
+| **Home** | Today’s score hero + one tip (demo metrics) |
+| **History** | Paid gate stub → demo week when stub trial active |
+| **Tips** | Free: one tip; paid: multiple + expert-team stub |
+| **Account** | Log out + delete account |
+| **Paywall** | Stub for $1 / 7-day paid trial (local entitlement flip) |
+
+Tab bar: Home · History · Tips · Account.
+
+---
+
+## FamilyControls (iOS)
+
+Entitlement is **approved**. Placeholders:
+
+- `app.json` iOS entitlements + usage description
+- `plugins/withFamilyControls.js`
+- `ios-placeholders/ScreenTimeScorer.entitlements`
+
+Full notes: [`docs/FAMILYCONTROLS.md`](./docs/FAMILYCONTROLS.md).
+
+---
+
+## Monetization stub
+
+- Free = today’s score + one tip only.
+- Paywall stub toggles a local “Paid trial” flag (no store billing yet).
+- Next: RevenueCat over StoreKit 2 + Play Billing; webhook → `entitlement_active` on Supabase profile.
+
+---
+
+## Push this scaffold to GitHub (Samuel)
+
+Cursor cannot access the remote. From a machine with GitHub auth (HTTPS or SSH):
+
+### If you already have this folder with the initial `main` commit
+
+```bash
+cd /path/to/screentimescorer
+
+git remote remove origin 2>/dev/null || true
+git remote add origin https://github.com/sampritch/screentimescorer.git
+
+git branch -M main
+git push -u origin main
+```
+
+### If you unzipped a copy without `.git`
+
+```bash
+cd /path/to/screentimescorer
+
+git init
+git add .
+git commit -m "Initial commit: Expo Screen Time Scorer scaffold"
+
+git branch -M main
+git remote add origin https://github.com/sampritch/screentimescorer.git
+git push -u origin main
+```
+
+### SSH alternative remote
+
+```bash
+git remote add origin git@github.com:sampritch/screentimescorer.git
+git push -u origin main
+```
+
+Create the empty repo `sampritch/screentimescorer` on GitHub first (no README/license if you want a clean first push).
+
+---
+
+## Project layout
+
+```
+App.tsx
+src/
+  components/     PrimaryButton, PaidGate
+  context/        Auth + subscription stubs
+  lib/            supabase, score, subscription
+  navigation/     stack + tabs
+  screens/        Auth, Home, History, Tips, Account, Paywall
+  theme/
+plugins/withFamilyControls.js
+ios-placeholders/
+supabase/
+docs/FAMILYCONTROLS.md
+.env.example
+```
+
+---
+
+## License
+
+See `LICENSE` (from Expo template). Product ownership: Samuel Pritchard.
